@@ -6,7 +6,7 @@ apply plugin: 'config'
 
 group = 'com.sysgears.grain'
 version = '0.3.2-SNAPSHOT'
-defaultTasks 'grain'
+defaultTasks 'preview'
 
 ext {
     mainClassName = [project.group, 'Main'].join('.')
@@ -94,6 +94,12 @@ idea {
 
 task generate(type: JavaExec) {
     logging.captureStandardOutput LogLevel.INFO
+    classpath sourceSets.main.runtimeClasspath
+    main = mainClassName
+    args name
+}
+
+task preview(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
     main = mainClassName
     args name
