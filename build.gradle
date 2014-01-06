@@ -2,6 +2,7 @@ apply plugin: 'maven'
 apply plugin: 'groovy'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
+apply plugin: 'config'
 
 group = 'com.sysgears.grain'
 version = '0.3.2-SNAPSHOT'
@@ -18,15 +19,18 @@ targetCompatibility = compatibilityVersion
 clean.doLast { ant.delete(dir: '.cache'); ant.delete(dir: 'target') }
 
 buildscript {
-    project.ext {
-        grainProps = new Properties()
-        grainProps.load(new FileInputStream("$project.projectDir/application.properties"))
-        grainVersion = grainProps.getProperty('grain.version')
-
-        if (!project.grainVersion) {
-            throw new RuntimeException('Grain version is not set in properties file')
-        }
+    repositories {
+        mavenCentral()
     }
+    dependencies {
+        classpath 'com.esyfur:gradle-config-plugin:0.4.+'
+    }
+}
+
+cfgutil.load('application')
+
+if (!config.grain?.version) {
+    throw new RuntimeException('Grain version is not set in properties file')
 }
 
 configurations.all {
@@ -47,7 +51,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.sysgears.grain:grain:$project.grainVersion"
+    compile "com.sysgears.grain:grain:${config.grain.version}"
 
     compile 'org.codehaus.groovy:groovy:2.1.2'
 }
@@ -67,10 +71,10 @@ project.ext {
 task gendeps {
     doLast {
         def classpath = project.classpath.files
-        def depFile = new File(".site-${project.grainVersion}.dep")
+        def depFile = new File(".site-${config.grain.version}.dep")
         depFile.withWriter { writer ->
             classpath.findAll { it.name.endsWith('.jar') }.sort {
-                !it.name.endsWith("grain-${project.grainVersion}.jar")
+                !it.name.endsWith("grain-${config.grain.version}.jar")
             }.each {
                 writer.append(it.toString()).append('\n')
             }
