@@ -34,7 +34,7 @@ GOTO fail
 :init
 
 @REM Determine java options
-IF "%GRAIN_OPTS%" == "" set GRAIN_OPTS=-server -Xmx256M -Xms32M -XX:PermSize=32m -XX:MaxPermSize=128m -Dfile.encoding=UTF-8
+IF "%GRAIN_OPTS%" == "" set GRAIN_OPTS=-server -Xmx256M -Xms32M -XX:PermSize=32m -XX:MaxPermSize=128m
 SET JAVA_OPTS=%GRAIN_OPTS% %JAVA_OPTS%
 
 @REM Get target Grain version
@@ -70,7 +70,6 @@ CALL :validateAndLaunch %*
 if "%ERRORLEVEL%"=="2" (
     @REM Site deps invalid - regenerate them
     CALL gradlew.bat gendeps
-    IF NOT "%ERRORLEVEL%"=="0" GOTO fail
     CALL :validateAndLaunch %*
 )
 EXIT /B %ERRORLEVEL% 
@@ -80,7 +79,10 @@ EXIT /B 1
 
 :validateAndLaunch
 @REM Get Grain JAR from site deps
-FOR /f %%a in (%SITE_DEPS%) do (
+
+FOR /F ^"usebackq^ eol^=^
+
+^ delims^=^" %%a in (%SITE_DEPS%) do (
    SET GRAIN_JAR=%%a
    GOTO _validate1
 )
@@ -98,7 +100,7 @@ IF NOT EXIST "%GRAIN_JAR%" (
 :_validate2
 
 @REM Check if site deps are valid
-"%JAVACMD%" %JAVA_OPTS% -cp %GRAIN_JAR% com.sysgears.grain.SiteLauncher %GRAIN_VERSION% -- %*
+"%JAVACMD%" %JAVA_OPTS% -cp "%GRAIN_JAR%" com.sysgears.grain.SiteLauncher %GRAIN_VERSION% -- %*
 GOTO :EOF
 
 :mainEnd
